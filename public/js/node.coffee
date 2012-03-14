@@ -1,0 +1,1 @@
+window.Node = class Node
