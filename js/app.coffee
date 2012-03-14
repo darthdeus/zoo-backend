@@ -25,6 +25,17 @@ jQuery ->
   map.attr 'fill', '#eee'
   map.attr 'stroke', 'none'
   map.click (e) ->
+    start = ->
+      console.log 'drag started'
+      @ox = @attr "cx"
+      @oy = @attr "cy"
+      @animate { r: 15, opacity: .25 }, 200, ">"
+
+    move = (dx, dy) ->
+      @attr {cx: @ox + dx, cy: @oy + dy }
+      console.log 'moving by', dx, dy
+
+    up = -> @animate { r: 10, opacity: 1 }, 200, ">"
 
     nodes.push
       x: e.offsetX
@@ -34,6 +45,7 @@ jQuery ->
     circle = paper.circle e.offsetX, e.offsetY, 10
     circle.attr 'fill', color
     circle.attr 'stroke', 'none'
+    circle.drag(move, start, up)
     console.log e.offsetX, e.offsetY
 
 
