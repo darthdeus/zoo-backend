@@ -7,6 +7,7 @@
     ($('.colorpick button')).click(function() {
       return color = ($(this)).attr('data-color');
     });
+    ($('.btn-danger')).click();
     ($('#dump-json')).click(function() {
       var json, node, _i, _len;
       json = [];
@@ -56,9 +57,10 @@
         this.circle = paper.circle(this.x, this.y, 10);
         this.circle.attr('fill', this.color);
         this.circle.attr('stroke', 'none');
-        this.text = paper.text(this.x, this.y, this.id);
-        this.text.attr('fill', 'white');
+        this.text = paper.text(this.x + 12, this.y - 9, this.id);
+        this.text.attr('fill', '#666');
         window.text = this.text;
+        window.circle = this.circle;
         start = function() {
           this.ox = this.attr("cx");
           this.oy = this.attr("cy");
@@ -80,8 +82,8 @@
             cy: this.oy + dy
           });
           return text.attr({
-            x: this.ox + dx,
-            y: this.oy + dy
+            x: this.ox + dx + 12,
+            y: this.oy + dy - 9
           });
         };
         return this.circle.drag(move, start, up);

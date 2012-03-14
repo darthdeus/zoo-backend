@@ -7,6 +7,8 @@ jQuery ->
   ($ '.colorpick button').click ->
     color = ($ this).attr('data-color')
 
+  ($ '.btn-danger').click()
+
   ($ '#dump-json').click ->
     json = []
     for node in nodes
@@ -51,10 +53,10 @@ jQuery ->
       @circle.attr 'fill', @color
       @circle.attr 'stroke', 'none'
 
-      @text = paper.text @x, @y, @id
-      @text.attr 'fill', 'white'
+      @text = paper.text @x + 12, @y - 9, @id
+      @text.attr 'fill', '#666'
       window.text = @text
-
+      window.circle = @circle
       start = ->
         @ox = @attr "cx"
         @oy = @attr "cy"
@@ -66,11 +68,9 @@ jQuery ->
 
       move = (dx, dy) ->
         @attr {cx: @ox + dx, cy: @oy + dy }
-        text.attr {x: @ox + dx, y: @oy + dy }
-
+        text.attr {x: @ox + dx + 12, y: @oy + dy - 9 }
 
       @circle.drag move, start, up
-
 
 
   gps_paper = Raphael 'gps_map', 940, 400
