@@ -46,32 +46,35 @@ jQuery ->
     draw_target: (x, y) ->
       @draw(x, y, @target_paper)
 
+    drawCircle: (paper, x, y, color) ->
+      circle = paper.circle x, y, 10
+      circle.attr 'fill', color
+      circle.attr 'stroke', 'none'
+      circle
+
+    drawText: (paper, x, y, text) ->
+      text = paper.text x + 12, y - 9, text
+      text.attr 'fill', '#666'
+      text
+
     draw: (x, y, paper) ->
-      @x = x
-      @y = y
-      @circle = paper.circle @x, @y, 10
-      @circle.attr 'fill', @color
-      @circle.attr 'stroke', 'none'
+      @circle = @drawCircle(paper, x, y, @color)
+      @text = @drawText(paper, x, y, @id)
 
-      @text = paper.text @x + 12, @y - 9, @id
-      @text.attr 'fill', '#666'
-      window.text = @text
-      window.circle = @circle
-      start = ->
-        @ox = @attr "cx"
-        @oy = @attr "cy"
-        @animate { r: 15, opacity: .25 }, 200, ">"
-      up = -> @animate { r: 10, opacity: 1 }, 200, ">"
+      @circle.drag @move, @start, @up
 
-      # closure for the move function
-      text = @text
+    start: ->
+      @ox = @attr "cx"
+      @oy = @attr "cy"
+      @animate { r: 11, opacity: .25 }, 200, ">"
+    up: -> @animate { r: 10, opacity: 1 }, 200, ">"
 
-      move = (dx, dy) ->
-        @attr {cx: @ox + dx, cy: @oy + dy }
-        text.attr {x: @ox + dx + 12, y: @oy + dy - 9 }
+    # closure for the move function
+    # text = @text
 
-      @circle.drag move, start, up
-
+    move: (dx, dy) ->
+      @attr {cx: @ox + dx, cy: @oy + dy }
+      # text.attr {x: @ox + dx + 12, y: @oy + dy - 9 }
 
   gps_paper = Raphael 'gps_map', 940, 400
 

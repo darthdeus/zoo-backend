@@ -17,7 +17,7 @@
       }
       json = json.join(",\n");
       json = "[\n" + json + "\n]\n";
-      ($('#json-output')).html(json);
+      (  $('#json-output')).html(json);
       return console.log(nodes);
     });
     window.nodes = nodes;
@@ -50,43 +50,47 @@
         return this.draw(x, y, this.target_paper);
       };
 
+      Node.prototype.drawCircle = function(paper, x, y, color) {
+        var circle;
+        circle = paper.circle(x, y, 10);
+        circle.attr('fill', color);
+        circle.attr('stroke', 'none');
+        return circle;
+      };
+
+      Node.prototype.drawText = function(paper, x, y, text) {
+        text = paper.text(x + 12, y - 9, text);
+        text.attr('fill', '#666');
+        return text;
+      };
+
       Node.prototype.draw = function(x, y, paper) {
-        var move, start, text, up;
-        this.x = x;
-        this.y = y;
-        this.circle = paper.circle(this.x, this.y, 10);
-        this.circle.attr('fill', this.color);
-        this.circle.attr('stroke', 'none');
-        this.text = paper.text(this.x + 12, this.y - 9, this.id);
-        this.text.attr('fill', '#666');
-        window.text = this.text;
-        window.circle = this.circle;
-        start = function() {
-          this.ox = this.attr("cx");
-          this.oy = this.attr("cy");
-          return this.animate({
-            r: 15,
-            opacity: .25
-          }, 200, ">");
-        };
-        up = function() {
-          return this.animate({
-            r: 10,
-            opacity: 1
-          }, 200, ">");
-        };
-        text = this.text;
-        move = function(dx, dy) {
-          this.attr({
-            cx: this.ox + dx,
-            cy: this.oy + dy
-          });
-          return text.attr({
-            x: this.ox + dx + 12,
-            y: this.oy + dy - 9
-          });
-        };
-        return this.circle.drag(move, start, up);
+        this.circle = this.drawCircle(paper, x, y, this.color);
+        this.text = this.drawText(paper, x, y, this.id);
+        return this.circle.drag(this.move, this.start, this.up);
+      };
+
+      Node.prototype.start = function() {
+        this.ox = this.attr("cx");
+        this.oy = this.attr("cy");
+        return this.animate({
+          r: 11,
+          opacity: .25
+        }, 200, ">");
+      };
+
+      Node.prototype.up = function() {
+        return this.animate({
+          r: 10,
+          opacity: 1
+        }, 200, ">");
+      };
+
+      Node.prototype.move = function(dx, dy) {
+        return this.attr({
+          cx: this.ox + dx,
+          cy: this.oy + dy
+        });
       };
 
       return Node;
