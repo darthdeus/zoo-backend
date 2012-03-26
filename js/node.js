@@ -3,8 +3,12 @@
   // Simple autoincrement ID for the nodes.
   var node_count = 0;
 
+  // View for a single node. It can render itself to an arbitrary number
+  // of MapViews, provided that they're passed in the options hash to the constructor.
   window.NodeView = Backbone.View.extend({
 
+    // NodeView is expecting to recieve an array of `maps`,
+    // which it later uses to render out it's nodes.
     initialize: function(options) {
       // Every time a node is created, it gets a new ID.
       this.id = ++node_count;
@@ -88,6 +92,8 @@
 
   });
 
+  // View for a single Map. The app should be able to handle
+  // arbitrary number of MapViews and render nodes to all of them.
   window.MapView = Backbone.View.extend({
 
     // options:
@@ -108,6 +114,9 @@
       this.drawPaper(options);
     },
 
+    // Create a Raphael paper for given options.
+    // It also renders out a background color rectangle
+    // and delegates it's click events to the mapping aggregator.
     drawPaper: function(options) {
       // Each MapView has it's own paper to draw on.
       // Be sure to reference the paper when drawing,
@@ -130,6 +139,8 @@
 
   });
 
+  // Implementation of the aggregator pattern to manage multiple MapViews and their events
+  // (http://lostechies.com/derickbailey/2011/07/19/references-routing-and-the-event-aggregator-coordinating-views-in-backbone-js/)
   window.Mapping = Backbone.View.extend({
 
     initialize: function() {
@@ -158,9 +169,13 @@
 
 $(function() {
 
+  // Global mapping to manage all MapViews
   var mapping = new window.Mapping();
+
+  // For in-browser console debugging
   window.mapping = mapping;
 
+  // Original GPS map imported from OSM
   var gps = new window.MapView({
     id: 'gps_map',
     width: 940,
@@ -168,6 +183,7 @@ $(function() {
     mapping: mapping
   });
 
+  // Target map
   var illustrative = new window.MapView({
     id: 'target_map',
     width: 940,
@@ -175,16 +191,4 @@ $(function() {
     mapping: mapping
   });
 
-  // gps.draw();
-  // illustrative.draw();
-
-  // target_paper = Raphael 'target_map', 940, 400
-
-  // target_map = target_paper.rect 0, 0, 940, 400
-  // target_map.attr 'fill', '#eee'
-  // target_map.attr 'stroke', 'none'
-  // target_map.click (e) ->
-  //   node = new Node(gps_paper, target_paper, color)
-  //   node.draw_both(e.offsetX, e.offsetY)
-  //   nodes.push node
 });
