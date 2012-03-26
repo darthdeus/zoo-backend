@@ -1,15 +1,20 @@
 (function() {
+
+  // Simple autoincrement ID for the nodes.
   var node_count = 0;
 
   window.NodeView = Backbone.View.extend({
 
     initialize: function(options) {
+      // Every time a node is created, it gets a new ID.
       this.id = ++node_count;
-      this.gps = options.gps;
-      this.illustrative = options.illustrative;
+
       this.x = options.x;
       this.y = options.y;
       this.color = options.color;
+      // Each NodeView needs to render it's node and id label to multiple maps,
+      // that's why it gets all of them passed in the options hash.
+      this.maps = options.maps;
 
       this.drawText();
       this.drawCircle();
@@ -19,9 +24,13 @@
 
     // Render out the circle's ID
     drawText: function() {
-      this.text = this.gps.text(this.options.x + 12,
-                                this.options.y - 9,
-                                this.id);
+      // Since there are multiple maps, we render out the text to each one of them.
+      this.maps.forEach(function(map) {
+        map.text = map.paper.text(this.options.x + 12,
+                                  this.options.y - 9,
+                                  this.id);
+        // Since forEach changes context, we need to pass this to perserve it.
+      }, this);
     },
 
     render: function() {
@@ -31,16 +40,21 @@
 
     // Render out the circle
     drawCircle: function() {
-      this.circle = this.gps.circle(this.x, this.y, 10);
-      // Since drag callbacks are being invoked in the context
-      // of the circle, we need to somehow pass it the text,
-      // so that it moves too.
-      // TODO - There's probably a better place to put it though
-      this.circle.text = this.text;
+      // Since there are multiple maps, we render out the circle to each one of them.
+      this.maps.forEach(function(map) {
+        map.circle = map.paper.circle(this.x, this.y, 10);
 
-      this.circle.attr('fill', this.color);
-      this.circle.attr('stroke', 'none');
-      this.circle.drag(this.move, this.start, this.up);
+        // Since drag callbacks are being invoked in the context
+        // of the circle, we need to somehow pass it the text,
+        // so that it moves too.
+        // TODO - There's probably a better place to put it though
+        map.circle.text = map.text;
+
+        map.circle.attr('fill', this.color);
+        map.circle.attr('stroke', 'none');
+        map.circle.drag(this.move, this.start, this.up);
+        // Since forEach changes context, we need to pass this to perserve it.
+      }, this);
     },
 
     // Drag start callback, invoked in context of the circle
@@ -86,51 +100,83 @@
           || typeof options.height === "undefined") {
         throw "Incomplete params given to the MapView";
       }
+      this.mapping = options.mapping;
+      // We push ourselves into the mapping, so that it can
+      // handle events.
+      this.mapping.maps.push(this);
 
+      this.drawPaper(options);
+    },
+
+    drawPaper: function(options) {
+      // Each MapView has it's own paper to draw on.
+      // Be sure to reference the paper when drawing,
+      // instead of the view itself. (can cause errors like "no method text()" etc..)
       this.paper = Raphael(options.id, options.width, options.height);
+
+      // Draw a basic rectangle for the background.
+      // TODO - Add rendering of the map image
       this.background = this.paper.rect(0, 0, options.width, options.height);
       this.background.attr('fill', '#eee');
       this.background.attr('stroke', 'none');
+
       var self = this;
       this.background.click(function(e) {
-        // `this` is the background here
-        var node = new window.NodeView({
-          // However we can still reference it's paper ...
-          // which points to the same instance as self.paper
-          gps: this.paper,
-          x: e.offsetX,
-          y: e.offsetY,
-          color: '#666'
-        });
-
+        // `this` is the background here,
+        // that's why we're perserving context via self
+        self.mapping.trigger('clicked', e, this);
       });
+    }
+
+  });
+
+  window.Mapping = Backbone.View.extend({
+
+    initialize: function() {
+      this.on('clicked', this.addNode, this);
+      // A list of map views. Each MapView is passed a reference
+      // to the mapping object and injects itself into the maps array.
+      this.maps = [];
     },
+
+    // Render a new node of given color for the triggered mouse event.
+    addNode: function(e, color) {
+      var node = new window.NodeView({
+        // We're passing all of the map views here.
+        // Maybe use a function with a closure instead,
+        // to ensure lazy evalutaion?
+        maps: this.maps,
+        x: e.offsetX,
+        y: e.offsetY,
+        color: '#666'
+      });
+    }
 
   });
 
 }).call(this);
 
 $(function() {
-  // var gps_paper = Raphael('gps_map', 940, 400);
 
-  // var gps_map = gps_paper.rect(0, 0, 940, 400);
-  // gps_map.attr('fill', '#eee');
-  // gps_map.attr('stroke', 'none');
-  // gps_map.click(function(e) {
-  //   var node = new window.NodeView({
-  //     gps: gps_paper,
-  //     x: e.offsetX,
-  //     y: e.offsetY,
-  //     color: '#666'
-  //   });
-  // });
+  var mapping = new window.Mapping();
+  window.mapping = mapping;
 
-  gps = new window.MapView({
+  var gps = new window.MapView({
     id: 'gps_map',
     width: 940,
-    height: 400
+    height: 400,
+    mapping: mapping
   });
 
+  var illustrative = new window.MapView({
+    id: 'target_map',
+    width: 940,
+    height: 400,
+    mapping: mapping
+  });
+
+  // gps.draw();
+  // illustrative.draw();
 
   // target_paper = Raphael 'target_map', 940, 400
 
