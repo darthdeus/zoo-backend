@@ -191,4 +191,8 @@ $(function() {
     mapping: mapping
   });
 
+  $.get('/map', function(data) {
+    nodes = $(data).find('node');
+  });
+
 });
