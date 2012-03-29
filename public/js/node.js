@@ -26,6 +26,26 @@
       console.log('new node created');
     },
 
+    toJSON: function() {
+      var grouped =  window.g = _.groupBy(this.maps, function(map) {
+        return (map.options.primary ? 'primary' : 'secondary');
+      });
+
+      primary = window.p = _.first(grouped.primary);
+      secondary = window.s = _.first(grouped.secondary);
+
+      return {
+        primary: {
+          x: primary.circle.attr('cx'),
+          y: primary.circle.attr('cy')
+        },
+        secondary: {
+          x: secondary.circle.attr('cx'),
+          y: secondary.circle.attr('cy')
+        }
+      };
+    },
+
     // Render out the circle's ID
     drawText: function() {
       // Since there are multiple maps, we render out the text to each one of them.
@@ -107,6 +127,8 @@
         throw "Incomplete params given to the MapView";
       }
       this.mapping = options.mapping;
+      this.options = options;
+
       // We push ourselves into the mapping, so that it can
       // handle events.
       this.mapping.maps.push(this);
@@ -148,6 +170,8 @@
       // A list of map views. Each MapView is passed a reference
       // to the mapping object and injects itself into the maps array.
       this.maps = [];
+      // A list of nodes that are created
+      this.nodes = [];
     },
 
     // Render a new node of given color for the triggered mouse event.
@@ -161,6 +185,11 @@
         y: e.offsetY,
         color: '#666'
       });
+      this.nodes.push(node);
+    },
+
+    toJSON: function() {
+      return _.map(this.nodes, function(node) { return node.toJSON(); });
     }
 
   });
@@ -180,7 +209,8 @@ $(function() {
     id: 'gps_map',
     width: 940,
     height: 400,
-    mapping: mapping
+    mapping: mapping,
+    primary: true
   });
 
   // Target map
@@ -189,10 +219,6 @@ $(function() {
     width: 940,
     height: 400,
     mapping: mapping
-  });
-
-  $.get('/map', function(data) {
-    nodes = $(data).find('node');
   });
 
 });
