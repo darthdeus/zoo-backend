@@ -19,6 +19,7 @@
       // Each NodeView needs to render it's node and id label to multiple maps,
       // that's why it gets all of them passed in the options hash.
       this.maps = options.maps;
+      this.elements = [];
 
       this.drawText();
       this.drawCircle();
@@ -50,9 +51,13 @@
     drawText: function() {
       // Since there are multiple maps, we render out the text to each one of them.
       this.maps.forEach(function(map) {
+        // map.text gets overwritten every time a new node is created,
+        // but it is enough to store it's reference in the map to assign it
+        // in a circle to enable simultaneous drag
         map.text = map.paper.text(this.options.x + 12,
                                   this.options.y - 9,
                                   this.id);
+        this.elements.push(map.text);
         // Since forEach changes context, we need to pass this to perserve it.
       }, this);
     },
@@ -64,6 +69,7 @@
 
     // Render out the circle
     drawCircle: function() {
+      var self = this;
       // Since there are multiple maps, we render out the circle to each one of them.
       this.maps.forEach(function(map) {
         map.circle = map.paper.circle(this.x, this.y, 10);
@@ -77,6 +83,12 @@
         map.circle.attr('fill', this.color);
         map.circle.attr('stroke', 'none');
         map.circle.drag(this.move, this.start, this.up);
+        map.circle.dblclick(function() {
+          console.log('dblclicked');
+          self.deleteNode();
+        });
+
+        this.elements.push(map.circle);
         // Since forEach changes context, we need to pass this to perserve it.
       }, this);
     },
@@ -109,6 +121,12 @@
       this.animate({ r: 10, opacity: 1 }, 100);
     },
 
+    deleteNode: function() {
+      console.log('delete triggered');
+      this.elements.forEach(function(element) {
+        element.remove();
+      });
+    }
 
   });
 
@@ -185,6 +203,8 @@
         y: e.offsetY,
         color: '#666'
       });
+      node.on('delete', this.deleteNode, this);
+
       this.nodes.push(node);
     },
 
@@ -219,6 +239,11 @@ $(function() {
     width: 940,
     height: 400,
     mapping: mapping
+  });
+
+  $('#dump-json').click(function(e) {
+    e.preventDefault();
+    $('#json-output').html(JSON.stringify(mapping.toJSON()));
   });
 
 });
