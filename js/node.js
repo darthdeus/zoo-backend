@@ -72,7 +72,7 @@
       var self = this;
       // Since there are multiple maps, we render out the circle to each one of them.
       this.maps.forEach(function(map) {
-        map.circle = map.paper.circle(this.x, this.y, 10);
+        map.circle = map.paper.circle(this.x, this.y, 8);
 
         // Since drag callbacks are being invoked in the context
         // of the circle, we need to somehow pass it the text,
@@ -80,8 +80,9 @@
         // TODO - There's probably a better place to put it though
         map.circle.text = map.text;
 
-        map.circle.attr('fill', this.color);
-        map.circle.attr('stroke', 'none');
+        map.circle.attr('fill', '#ccc');
+        map.circle.attr('stroke', '#333');
+        map.circle.attr('stroke-width', '3');
         map.circle.drag(this.move, this.start, this.up);
         map.circle.dblclick(function() {
           console.log('dblclicked');
@@ -99,7 +100,7 @@
       this.oy = this.attr('cy');
       // TODO - specify easing parameter
       // http://raphaeljs.com/reference.html#Raphael.easing_formulas
-      this.animate({ r: 11, opacity: 0.25 }, 100);
+      this.animate({ r: 9, opacity: 0.25 }, 100);
     },
 
     // Drag move callback, invoked in context of the circle
@@ -118,7 +119,7 @@
     up: function() {
       // TODO - specify easing parameter
       // http://raphaeljs.com/reference.html#Raphael.easing_formulas
-      this.animate({ r: 10, opacity: 1 }, 100);
+      this.animate({ r: 8, opacity: 1 }, 100);
     },
 
     deleteNode: function() {
@@ -163,14 +164,22 @@
       // instead of the view itself. (can cause errors like "no method text()" etc..)
       this.paper = Raphael(options.id, options.width, options.height);
 
-      // Draw a basic rectangle for the background.
-      // TODO - Add rendering of the map image
-      this.background = this.paper.rect(0, 0, options.width, options.height);
-      this.background.attr('fill', '#eee');
-      this.background.attr('stroke', 'none');
+      // // Draw a basic rectangle for the background.
+      // // TODO - Add rendering of the map image
+      // this.background = this.paper.rect(0, 0, options.width, options.height);
+      // this.background.attr('fill', '#eee');
+      // this.background.attr('stroke', 'none');
 
+      // var self = this;
+      // this.background.click(function(e) {
+      //   // `this` is the background here,
+      //   // that's why we're perserving context via self
+      //   self.mapping.trigger('clicked', e, this);
+      // });
+
+      this.image = this.paper.image(options.image, 0, 0, options.width, options.height);
       var self = this;
-      this.background.click(function(e) {
+      this.image.click(function(e) {
         // `this` is the background here,
         // that's why we're perserving context via self
         self.mapping.trigger('clicked', e, this);
@@ -201,7 +210,7 @@
         maps: this.maps,
         x: e.offsetX,
         y: e.offsetY,
-        color: '#666'
+        color: '#333'
       });
       node.on('delete', this.deleteNode, this);
 
@@ -228,17 +237,19 @@ $(function() {
   var gps = new window.MapView({
     id: 'gps_map',
     width: 940,
-    height: 400,
+    height: 600,
     mapping: mapping,
-    primary: true
+    primary: true,
+    image: 'map_orig.png'
   });
 
   // Target map
   var illustrative = new window.MapView({
     id: 'target_map',
     width: 940,
-    height: 400,
-    mapping: mapping
+    height: 600,
+    mapping: mapping,
+    image: 'map_target.png'
   });
 
   $('#dump-json').click(function(e) {
